@@ -20,9 +20,8 @@ class LDAPController extends Controller
     protected function attemptLogin(Request $request)
     {
         // $credentials = $request->only($this->username(), 'password');
-        $username = 'std26';
-        $password = 'N872PVHC';
-
+        $username = $request->all()['username'];
+        $password = $request->all()['password'];;
         $user_format = env('LDAP_USER_FORMAT', 'cn=%s,' . env('LDAP_BASE_DN', ''));
         $userdn = sprintf($user_format, $username);
         // you might need this, as reported in
@@ -31,13 +30,12 @@ class LDAPController extends Controller
         if (Adldap::auth()->attempt($userdn, $password, $bindAsUser = true)) {
             // the user exists in the LDAP server, with the provided password
             $sync_attrs = $this->retrieveSyncAttributes($username);
-            return true;
+            return response()->json($sync_attrs, 200);
         }
 
         // the user doesn't exist in the LDAP server or the password is wrong
         // log error
-        dd('fail');
-        return false;
+        return response()->json(['message' => 'username or password incorrect'], 401);
     }
 
     protected function retrieveSyncAttributes($username)
@@ -54,7 +52,6 @@ class LDAPController extends Controller
         $ldapuser_attrs = null;
 
         $attrs = [];
-
         foreach (config('ldap_auth.sync_attributes') as $local_attr => $ldap_attr) {
             if ($local_attr == 'username') {
                 continue;
@@ -85,7 +82,6 @@ class LDAPController extends Controller
                 $attrs[$local_attr] = null;
                 continue;
             }
-            dd($ldapuser_attrs);
             // now it returns the first item, but it could return
             // a comma-separated string or any other thing that suits you better
             $attrs[$local_attr] = $ldapuser_attrs[$ldap_attr][0];

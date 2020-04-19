@@ -191,9 +191,10 @@ return [
 
     'sync_attributes' => [
         // 'field_in_local_db' => 'attribute_in_ldap_server',
-        'username' => 'uid',
+        'uid' => 'uid',
         'name' => 'cn',
-        'phone' => 'telephonenumber',
+        'name_th' => 'description',
+        'email' => 'mail',
     ],
 
     /*

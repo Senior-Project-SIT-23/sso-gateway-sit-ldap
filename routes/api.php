@@ -18,5 +18,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/show', 'LDAPController@attemptLogin');
-Route::post('/student', 'StudentController@store');
+Route::post('/login', 'LDAPController@attemptLogin');
