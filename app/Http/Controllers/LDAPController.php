@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Adldap\Laravel\Facades\Adldap;
 
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use JWTAuth;
+use JWTFactory;
+use Tymon\JWTAuth\Exceptions\JWTException;
+
 class LDAPController extends Controller
 {
 
@@ -30,6 +36,8 @@ class LDAPController extends Controller
         if (Adldap::auth()->attempt($userdn, $password, $bindAsUser = true)) {
             // the user exists in the LDAP server, with the provided password
             $sync_attrs = $this->retrieveSyncAttributes($username);
+            $token = $this->encode($sync_attrs['uid']);
+            $sync_attrs['token'] = $token;
             return response()->json($sync_attrs, 200);
         }
 
@@ -110,5 +118,17 @@ class LDAPController extends Controller
             die('Error in LoginController::username(): could not find username column.');
         }
         return $column_name;
+    }
+
+    public function encode($student_id)
+    {
+        $factory = JWTFactory::customClaims([
+            'sub'   => 'JWT',
+            'student_id' => $student_id,
+        ]);
+
+        $payload = $factory->make();
+        $token = JWTAuth::encode($payload)->get();
+        return $token;
     }
 }
