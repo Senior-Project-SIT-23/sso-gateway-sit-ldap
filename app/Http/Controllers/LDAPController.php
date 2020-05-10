@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Adldap\Laravel\Facades\Adldap;
+use App\Repositories\UserRepositoryInterface;
+use GuzzleHttp\Client;
 
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
@@ -17,11 +19,12 @@ class LDAPController extends Controller
 {
 
     protected $ldap;
+    protected $user;
 
-    public function __construct()
+    public function __construct(UserRepositoryInterface $user)
     {
+        $this->user = $user;
     }
-
 
     protected function attemptLogin(Request $request)
     {
@@ -36,9 +39,27 @@ class LDAPController extends Controller
         if (Adldap::auth()->attempt($userdn, $password, $bindAsUser = true)) {
             // the user exists in the LDAP server, with the provided password
             $sync_attrs = $this->retrieveSyncAttributes($username);
-            $token = $this->encode($sync_attrs['uid']);
-            $sync_attrs['token'] = $token;
-            return response()->json($sync_attrs, 200);
+
+            $URL = env('SSO_MANAGE_URL') . '/users';
+            $client = new Client(['base_uri' => $URL]);
+            $response = $client->request('POST', $URL, ['json' => ['sync_attrs' => $sync_attrs]]);
+
+            if ($response->getStatusCode() == 200) {
+                $auth_code = $this->generateRandomString(10);
+                $user_id = $sync_attrs['uid'];
+                $token = $this->encode($sync_attrs['uid'], 'ssoserviceforsit');
+
+                $sync_attrs['token'] = $token;
+                $sync_attrs['auth_code'] = $auth_code;
+                $is_created_user = $this->user->createUser($sync_attrs);
+                if ($is_created_user) {
+                    return response()->json($sync_attrs, 200);
+                } else {
+                    return response()->json("Error Create Sessions user", 500);
+                }
+            } elseif ($response->getStatusCode() == 500) {
+                return response()->json($response->getBody(), 500);
+            }
         }
 
         // the user doesn't exist in the LDAP server or the password is wrong
@@ -120,15 +141,19 @@ class LDAPController extends Controller
         return $column_name;
     }
 
-    public function encode($student_id)
+    public function encode($student_id, $sub_type)
     {
         $factory = JWTFactory::customClaims([
-            'sub'   => 'JWT',
+            'sub'   => $sub_type,
             'student_id' => $student_id,
         ]);
 
         $payload = $factory->make();
         $token = JWTAuth::encode($payload)->get();
         return $token;
+    }
+    function generateRandomString($length)
+    {
+        return substr(str_shuffle(str_repeat($x = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length / strlen($x)))), 1, $length);
     }
 }

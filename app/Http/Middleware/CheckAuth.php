@@ -26,8 +26,16 @@ class CheckAuth
         if ($check) {
             try {
                 $decoded = JWT::decode($jwt, $jwt_secret, array('HS256'));
-                $student_id = $decoded->attrs;
-                $request['student_id'] = $student_id;
+                if ($decoded->sub != 'ssoserviceforsit') {
+                    return response()->json(
+                        [
+                            'error' => 'Invalid token.'
+                        ],
+                        401
+                    );
+                }
+                $user_id = $decoded->attrs;
+                $request['user_id'] = $user_id;
                 return $next($request);
             } catch (ExpiredException $exp) {
                 return response()->json(
