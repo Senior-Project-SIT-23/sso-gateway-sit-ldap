@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('/login', 'LDAPController@attemptLogin');
+Route::get('/oauth/token', 'AuthController@getTokenByAuthCode');
 
 Route::group(['middleware' => ['checkAuth']], function () {
 });

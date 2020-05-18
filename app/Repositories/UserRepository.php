@@ -37,4 +37,12 @@ class UserRepository implements UserRepositoryInterface
             return  false;
         }
     }
+    public function getUserIdByAuthCode($auth_code)
+    {
+        return UserAuthCode::where('auth_code', $auth_code)->first();
+    }
+    public function getUserTokenByUserId($user_id)
+    {
+        return UserAuth::select('token')->where('user_id', $user_id)->first();
+    }
 }

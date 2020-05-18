@@ -31,7 +31,7 @@ class LDAPController extends Controller
         // $credentials = $request->only($this->username(), 'password');
         $username = $request->all()['username'];
         $password = $request->all()['password'];;
-        $user_format = env('LDAP_USER_FORMAT', 'cn=%s,' . env('LDAP_BASE_DN', ''));
+        $user_format = env('LDAP_USER_FORMAT', 'cn=%s,' . env('LDAP_BASE_STUDENT', ''));
         $userdn = sprintf($user_format, $username);
         // you might need this, as reported in
         // [#14](https://github.com/jotaelesalinas/laravel-simple-ldap-auth/issues/14):
@@ -62,6 +62,33 @@ class LDAPController extends Controller
             }
         }
 
+        $user_format = env('LDAP_STAFF_FORMAT', 'cn=%s,' . env('LDAP_BASE_STAFF', ''));
+        $userdn = sprintf($user_format, $username);
+        if (Adldap::auth()->attempt($userdn, $password, $bindAsUser = true)) {
+            // the user exists in the LDAP server, with the provided password
+            $sync_attrs = $this->retrieveSyncAttributes($username);
+
+            $URL = env('SSO_MANAGE_URL') . '/users';
+            $client = new Client(['base_uri' => $URL]);
+            $response = $client->request('POST', $URL, ['json' => ['sync_attrs' => $sync_attrs]]);
+
+            if ($response->getStatusCode() == 200) {
+                $auth_code = $this->generateRandomString(10);
+                $user_id = $sync_attrs['uid'];
+                $token = $this->encode($sync_attrs['uid'], 'ssoserviceforsit');
+
+                $sync_attrs['token'] = $token;
+                $sync_attrs['auth_code'] = $auth_code;
+                $is_created_user = $this->user->createUser($sync_attrs);
+                if ($is_created_user) {
+                    return response()->json($sync_attrs, 200);
+                } else {
+                    return response()->json("Error Create Sessions user", 500);
+                }
+            } elseif ($response->getStatusCode() == 500) {
+                return response()->json($response->getBody(), 500);
+            }
+        }
         // the user doesn't exist in the LDAP server or the password is wrong
         // log error
         return response()->json(['message' => 'username or password incorrect'], 401);
