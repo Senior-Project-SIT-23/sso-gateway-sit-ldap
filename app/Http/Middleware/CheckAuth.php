@@ -34,7 +34,7 @@ class CheckAuth
                         401
                     );
                 }
-                $user_id = $decoded->attrs;
+                $user_id = $decoded->user_id;
                 $request['user_id'] = $user_id;
                 return $next($request);
             } catch (ExpiredException $exp) {

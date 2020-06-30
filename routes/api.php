@@ -19,4 +19,6 @@ Route::post('/login', 'LDAPController@attemptLogin');
 Route::get('/oauth/token', 'AuthController@getTokenByAuthCode');
 
 Route::group(['middleware' => ['checkAuth']], function () {
+    Route::get('/login/auth-code', 'AuthController@getAuthCodeByUserId');
+    Route::get('/users/{user_id}', 'AuthController@getUserByToken');
 });

@@ -45,4 +45,18 @@ class UserRepository implements UserRepositoryInterface
     {
         return UserAuth::select('token')->where('user_id', $user_id)->first();
     }
+    public function createAutcode($data)
+    {
+        $user_auth_code = UserAuthCode::where('user_id', $data['user_id'])->first();
+        if (!$user_auth_code) {
+            $user_auth_code = new UserAuthCode;
+            $user_auth_code->user_id = $data['user_id'];
+            $user_auth_code->auth_code = $data['auth_code'];
+            $user_auth_code->save();
+        } else {
+            $user_auth_code->auth_code = $data['auth_code'];
+            $user_auth_code->save();
+        }
+        return  $user_auth_code;
+    }
 }
