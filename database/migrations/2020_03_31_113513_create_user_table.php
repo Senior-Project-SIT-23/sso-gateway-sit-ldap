@@ -19,6 +19,7 @@ class CreateUserTable extends Migration
             $table->string('name');
             $table->string('name_th');
             $table->string('email');
+            $table->string('radiusgroupname');
             $table->string('username')->unique();
 
             // remove this line:

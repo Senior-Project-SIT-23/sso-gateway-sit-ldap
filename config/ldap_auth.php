@@ -195,6 +195,7 @@ return [
         'name' => 'cn',
         'name_th' => 'description',
         'email' => 'mail',
+        'group' => 'radiusgroupname',
     ],
 
     /*

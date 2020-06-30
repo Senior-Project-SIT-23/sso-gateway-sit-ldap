@@ -39,7 +39,6 @@ class LDAPController extends Controller
         if (Adldap::auth()->attempt($userdn, $password, $bindAsUser = true)) {
             // the user exists in the LDAP server, with the provided password
             $sync_attrs = $this->retrieveSyncAttributes($username);
-
             $URL = env('SSO_MANAGE_URL') . '/users';
             $client = new Client(['base_uri' => $URL]);
             $response = $client->request('POST', $URL, ['json' => ['sync_attrs' => $sync_attrs]]);
