@@ -9,4 +9,5 @@ interface UserRepositoryInterface
     public function createAutcode($data);
     public function getUserIdByAuthCode($data);
     public function getUserTokenByUserId($data);
+    public function logout($data);
 }

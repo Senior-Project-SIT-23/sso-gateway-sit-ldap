@@ -71,11 +71,34 @@ class AuthController extends Controller
             $responseBody = $th->getResponse();
             if ($responseBody->getStatusCode() == 404) {
                 return response()->json(['message' => 'client_id and client_secret not match'], 404);
-            }else{
+            } else {
                 return response()->json(['message' => 'something went wrong pls contact developer'], 500);
             }
         }
     }
+
+    public function getClient(Request $request, $client_id)
+    {
+
+        try {
+            $URL = env('SSO_MANAGE_URL') . "/applications/${client_id}";
+            $client = new Client(['base_uri' => $URL]);
+            $response = $client->request('GET', $URL);
+
+            if ($response->getStatusCode() == 200) {
+                $response = json_decode($response->getBody(), true);
+                return response()->json($response, 200);
+            }
+        } catch (\Throwable $th) {
+            $responseBody = $th->getResponse();
+            if ($responseBody->getStatusCode() == 404) {
+                return response()->json(['message' => 'client_id and client_secret not match'], 404);
+            } else {
+                return response()->json(['message' => 'something went wrong pls contact developer'], 500);
+            }
+        }
+    }
+
     public function getUserByToken(Request $request)
     {
         $data = $request->all();
@@ -97,5 +120,15 @@ class AuthController extends Controller
         $data["auth_code"] = $auth_code;
         $response = $this->user->createAutcode($data);
         return response()->json($response, 200);
+    }
+
+    public function logout(Request $request)
+    {
+        $data = $request->all();
+        $response = $this->user->logout($data["user_id"]);
+        if ($response) {
+            return response()->json(["message" => "logout"], 200);
+        }
+        return response()->json(['message' => 'something went wrong pls contact developer'], 500);
     }
 }
