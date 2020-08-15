@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: *, http://localhost:3000');
 header('Access-Control-Allow-Headers: *');
 header('Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS');
 
