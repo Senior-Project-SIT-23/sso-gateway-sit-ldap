@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token,Authorization');
+header('Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS');
 
 Route::post('/login', 'LDAPController@attemptLogin');
 Route::get('/oauth/token', 'AuthController@getTokenByAuthCode');
