@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token,Authorization');
+header('Access-Control-Allow-Headers: *');
 header('Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS');
 
 Route::post('/login', 'LDAPController@attemptLogin');
