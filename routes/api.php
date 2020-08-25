@@ -14,12 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
-
-header('Access-Control-Allow-Origin: http://localhost:3000');
-header('Access-Control-Allow-Headers: *');
-header('Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS');
-
 Route::post('/login', 'LDAPController@attemptLogin');
 Route::get('/oauth/token', 'AuthController@getTokenByAuthCode');
 Route::get('/applications/{app_id}', 'AuthController@getClient');
