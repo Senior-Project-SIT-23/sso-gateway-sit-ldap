@@ -41,7 +41,7 @@ class AuthController extends Controller
         $client_secret = Arr::get($data, 'client_secret');
         $code = Arr::get($data, 'code');
         try {
-            $URL = env('SSO_MANAGE_URL') . "/applications/${client_id}/check-secret";
+            $URL = env('SSO_MANAGE_URL') . "/applications/client/${client_id}/check-secret";
             $client = new Client(['base_uri' => $URL]);
             $response = $client->request('POST', $URL, ['json' => ['client_secret' => $client_secret]]);
             $user_auth = $this->user->getUserIdByAuthCode($code);
@@ -81,7 +81,7 @@ class AuthController extends Controller
     {
 
         try {
-            $URL = env('SSO_MANAGE_URL') . "/applications/${client_id}";
+            $URL = env('SSO_MANAGE_URL') . "/applications/client/${client_id}";
             $client = new Client(['base_uri' => $URL]);
             $response = $client->request('GET', $URL);
 
