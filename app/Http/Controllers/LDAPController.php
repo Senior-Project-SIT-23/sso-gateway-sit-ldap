@@ -35,7 +35,6 @@ class LDAPController extends Controller
         $userdn = sprintf($user_format, $username);
         // you might need this, as reported in
         // [#14](https://github.com/jotaelesalinas/laravel-simple-ldap-auth/issues/14):
-        // Adldap::auth()->bind($userdn, $password);
         if (Adldap::auth()->attempt($userdn, $password, $bindAsUser = true)) {
             // the user exists in the LDAP server, with the provided password
             $sync_attrs = $this->retrieveSyncAttributes($username);
@@ -46,7 +45,8 @@ class LDAPController extends Controller
             if ($response->getStatusCode() == 200) {
                 $auth_code = $this->generateRandomString(10);
                 $user_id = $sync_attrs['uid'];
-                $token = $this->encode($sync_attrs['uid'], 'ssoserviceforsit');
+                $roles = json_decode($response->getBody(), true)['roles'];
+                $token = $this->encode($user_id, $roles, 'ssoserviceforsit');
 
                 $sync_attrs['token'] = $token;
                 $sync_attrs['auth_code'] = $auth_code;
@@ -74,7 +74,8 @@ class LDAPController extends Controller
             if ($response->getStatusCode() == 200) {
                 $auth_code = $this->generateRandomString(10);
                 $user_id = $sync_attrs['uid'];
-                $token = $this->encode($sync_attrs['uid'], 'ssoserviceforsit');
+                $roles = json_decode($response->getBody(), true)['roles'];
+                $token = $this->encode($user_id, $roles, 'ssoserviceforsit');
 
                 $sync_attrs['token'] = $token;
                 $sync_attrs['auth_code'] = $auth_code;
@@ -167,11 +168,12 @@ class LDAPController extends Controller
         return $column_name;
     }
 
-    public function encode($student_id, $sub_type)
+    public function encode($student_id, $roles, $sub_type)
     {
         $factory = JWTFactory::customClaims([
             'sub'   => $sub_type,
             'user_id' => $student_id,
+            'roles' => $roles,
         ]);
 
         $payload = $factory->make();
