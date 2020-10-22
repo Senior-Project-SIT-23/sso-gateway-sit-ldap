@@ -31,6 +31,7 @@ class LDAPController extends Controller
         // $credentials = $request->only($this->username(), 'password');
         $username = $request->all()['username'];
         $password = $request->all()['password'];;
+        $is_remember = $request->all()['is_remember'];;
         $user_format = env('LDAP_USER_FORMAT', 'cn=%s,' . env('LDAP_BASE_STUDENT', ''));
         $userdn = sprintf($user_format, $username);
         // you might need this, as reported in
@@ -46,7 +47,7 @@ class LDAPController extends Controller
                 $auth_code = $this->generateRandomString(10);
                 $user_id = $sync_attrs['uid'];
                 $roles = json_decode($response->getBody(), true)['roles'];
-                $token = $this->encode($user_id, $roles, 'ssoserviceforsit');
+                $token = $this->encode($user_id, $roles, 'ssoserviceforsit', $is_remember);
 
                 $sync_attrs['token'] = $token;
                 $sync_attrs['auth_code'] = $auth_code;
@@ -75,7 +76,7 @@ class LDAPController extends Controller
                 $auth_code = $this->generateRandomString(10);
                 $user_id = $sync_attrs['uid'];
                 $roles = json_decode($response->getBody(), true)['roles'];
-                $token = $this->encode($user_id, $roles, 'ssoserviceforsit');
+                $token = $this->encode($user_id, $roles, 'ssoserviceforsit', $is_remember);
 
                 $sync_attrs['token'] = $token;
                 $sync_attrs['auth_code'] = $auth_code;
@@ -168,14 +169,17 @@ class LDAPController extends Controller
         return $column_name;
     }
 
-    public function encode($student_id, $roles, $sub_type)
+    public function encode($student_id, $roles, $sub_type, $is_remember)
     {
+        $time_expiries = 24;
+        if ($is_remember) {
+            $time_expiries = 24 * 15;
+        }
         $factory = JWTFactory::customClaims([
             'sub'   => $sub_type,
             'user_id' => $student_id,
             'roles' => $roles,
-        ]);
-
+        ])->setTTL(60 * $time_expiries);
         $payload = $factory->make();
         $token = JWTAuth::encode($payload)->get();
         return $token;
