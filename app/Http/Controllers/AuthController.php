@@ -79,9 +79,9 @@ class AuthController extends Controller
 
     public function getClient(Request $request, $client_id)
     {
-
         try {
-            $URL = env('SSO_MANAGE_URL') . "/applications/client/${client_id}";
+            $redirect_uri = $request->all()["redirect_uri"];
+            $URL = env('SSO_MANAGE_URL') . "/applications/client/${client_id}?redirect_uri=${redirect_uri}";
             $client = new Client(['base_uri' => $URL]);
             $response = $client->request('GET', $URL);
 
@@ -91,8 +91,9 @@ class AuthController extends Controller
             }
         } catch (\Throwable $th) {
             $responseBody = $th->getResponse();
-            if ($responseBody->getStatusCode() == 404) {
-                return response()->json(['message' => 'client_id and client_secret not match'], 404);
+            if ($responseBody->getStatusCode()) {
+                $resBody = json_decode($responseBody->getBody(), true);
+                return response()->json($resBody, $responseBody->getStatusCode());
             } else {
                 return response()->json(['message' => 'something went wrong pls contact developer'], 500);
             }
