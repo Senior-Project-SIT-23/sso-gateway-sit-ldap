@@ -45,7 +45,7 @@ class AuthController extends Controller
         try {
             $URL = env('SSO_MANAGE_URL') . "/applications/client/${client_id}/check-secret";
             $client = new Client(['base_uri' => $URL]);
-            $response = $client->request('POST', $URL, ['json' => ['client_secret' => $client_secret, ['redirect_uri' => $redirect_uri]]]);
+            $response = $client->request('POST', $URL, ['json' => ['client_secret' => $client_secret, 'redirect_uri' => $redirect_uri]]);
             $user_auth = $this->user->getUserIdByAuthCode($code);
 
             if ($user_auth) {
