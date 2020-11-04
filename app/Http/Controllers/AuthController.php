@@ -32,6 +32,7 @@ class AuthController extends Controller
         $validator =  Validator::make($request->all(), [
             'client_id' => 'required',
             'client_secret' => 'required',
+            'redirect_uri' => 'required',
             'code' => 'required',
         ]);
         if ($validator->fails()) {
@@ -40,10 +41,11 @@ class AuthController extends Controller
         $client_id = Arr::get($data, 'client_id');
         $client_secret = Arr::get($data, 'client_secret');
         $code = Arr::get($data, 'code');
+        $redirect_uri = Arr::get($data, 'redirect_uri');
         try {
             $URL = env('SSO_MANAGE_URL') . "/applications/client/${client_id}/check-secret";
             $client = new Client(['base_uri' => $URL]);
-            $response = $client->request('POST', $URL, ['json' => ['client_secret' => $client_secret]]);
+            $response = $client->request('POST', $URL, ['json' => ['client_secret' => $client_secret, ['redirect_uri' => $redirect_uri]]]);
             $user_auth = $this->user->getUserIdByAuthCode($code);
 
             if ($user_auth) {
