@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Firebase\JWT\ExpiredException;
 use \Firebase\JWT\JWT;
+use App\Repositories\UserRepositoryInterface;
 
 
 class CheckAuth
@@ -16,6 +17,13 @@ class CheckAuth
      * @param  \Closure  $next
      * @return mixed
      */
+    protected $userInf;
+
+    public function __construct(UserRepositoryInterface $userInf)
+    {
+        $this->userInf = $userInf;
+    }
+
     public function handle($request, Closure $next)
     {
         $jwt_secret = env('JWT_SECRET');
@@ -35,6 +43,10 @@ class CheckAuth
                     );
                 }
                 $user_id = $decoded->user_id;
+                $userData = $this->userInf->getUserTokenByUserId($user_id);
+                if ($userData->token === "") {
+                    return response()->json(['message' => 'token has been expired'], 401);
+                }
                 $request['user_id'] = $user_id;
                 return $next($request);
             } catch (ExpiredException $exp) {

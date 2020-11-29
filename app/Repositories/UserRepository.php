@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Model\UserAuth;
 use App\Model\UserAuthCode;
+use Carbon\Carbon;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -63,8 +64,10 @@ class UserRepository implements UserRepositoryInterface
 
     public function logout($user_id)
     {
-        $user = UserAuth::where('user_id', $user_id)->first();
-        $user->token = "";
+        UserAuth::where('user_id', $user_id)->update([
+            'token' => "",
+            'updated_at' => Carbon::now()
+        ]);
         return true;
     }
 }
